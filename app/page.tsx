@@ -5,9 +5,11 @@ import { Message, ModelConfig } from '@/types/chat';
 import { ChatMessage } from '@/components/ChatMessage';
 import { ChatInput } from '@/components/ChatInput';
 import { ConfigPanel } from '@/components/ConfigPanel';
-import { Bot, Trash2 } from 'lucide-react';
+import { PuzzleBoard } from '@/components/PuzzleBoard';
+import { Bot, Trash2, MessageSquare, Puzzle } from 'lucide-react';
 
 export default function ChatPage() {
+  const [tab, setTab] = useState<'chat' | 'puzzle'>('chat');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -31,7 +33,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, tab]);
 
   const handleSendMessage = async (text: string) => {
     const userMessage: Message = {
@@ -88,6 +90,13 @@ export default function ChatPage() {
     }
   };
 
+  const tabClass = (active: boolean) =>
+    `flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+      active
+        ? 'bg-indigo-600 text-white'
+        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+    }`;
+
   return (
     <div className="flex flex-col lg:flex-row h-screen w-screen bg-slate-950 overflow-hidden font-sans">
       <div className="flex-1 flex flex-col h-full min-h-0">
@@ -101,37 +110,53 @@ export default function ChatPage() {
               <p className="text-xs text-slate-400">Next.js + Google GenAI SDK</p>
             </div>
           </div>
-          <button
-            onClick={() => setMessages([])}
-            title="Limpiar Conversación"
-            className="text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button onClick={() => setTab('chat')} className={tabClass(tab === 'chat')}>
+              <MessageSquare className="w-4 h-4" /> Chat
+            </button>
+            <button onClick={() => setTab('puzzle')} className={tabClass(tab === 'puzzle')}>
+              <Puzzle className="w-4 h-4" /> Puzzle 3x3
+            </button>
+            {tab === 'chat' && (
+              <button
+                onClick={() => setMessages([])}
+                title="Limpiar Conversación"
+                className="text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-4 lg:px-12 py-6">
-          {messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} />
-          ))}
-          {isLoading && (
-            <div className="flex gap-3 my-4 justify-start">
-              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white animate-pulse">
-                <Bot className="w-4 h-4" />
-              </div>
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-none px-4 py-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" />
-                  <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]" />
+        {tab === 'chat' ? (
+          <>
+            <main className="flex-1 overflow-y-auto px-4 lg:px-12 py-6">
+              {messages.map((msg) => (
+                <ChatMessage key={msg.id} message={msg} />
+              ))}
+              {isLoading && (
+                <div className="flex gap-3 my-4 justify-start">
+                  <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white animate-pulse">
+                    <Bot className="w-4 h-4" />
+                  </div>
+                  <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-tl-none px-4 py-3">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" />
+                      <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:0.4s]" />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </main>
-
-        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+              )}
+              <div ref={messagesEndRef} />
+            </main>
+            <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+          </>
+        ) : (
+          <PuzzleBoard config={config} />
+        )}
       </div>
 
       <ConfigPanel config={config} onChange={setConfig} />
